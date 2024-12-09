@@ -15,15 +15,20 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.mutableStateListOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.rememberCoroutineScope
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
+import ara.hossein.androidtraining.onlinedictionary.network.DictionaryApi
+import kotlinx.coroutines.launch
 
 @Composable
 fun HomeScreen(modifier: Modifier = Modifier) {
+    val scope = rememberCoroutineScope()
+
     val text = remember { mutableStateOf("") }
-    val items = remember { mutableStateListOf("item1", "item2") }
+    val items = remember { mutableStateListOf<String>() }
 
     Column(
         modifier = Modifier.padding(16.dp),
@@ -35,7 +40,13 @@ fun HomeScreen(modifier: Modifier = Modifier) {
         ) {
             OutlinedTextField(value = text.value, onValueChange = { text.value = it })
             Button(onClick = {
-
+                scope.launch {
+                    val r = DictionaryApi.retrofitService.getDefinition(text.value)
+                    items.clear()
+                    r.first().meanings.forEach{
+                        items.add(it.definitions.first().definition)
+                    }
+                }
             }) { Text("Search") }
         }
         LazyColumn(modifier = Modifier.padding(top = 16.dp)) {
